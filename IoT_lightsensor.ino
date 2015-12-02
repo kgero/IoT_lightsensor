@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <SFE_MicroOLED.h>
+#include "SFE_ISL29125.h"
 
 //////////////////////////
 // MicroOLED Defintions //
@@ -29,13 +30,14 @@ const char WiFiPSK[] = "dunkindecaf";
 const int LED_PIN = 5; // Thing's onboard, green LED
 const int ANALOG_PIN = A0; // The only analog pin on the Thing
 const int DIGITAL_PIN = 12; // Digital pin to be read
+SFE_ISL29125 RGB_sensor;
 
 ////////////////
 // Phant Keys //
 ////////////////
 const char PhantHost[] = "data.sparkfun.com";
-const char PublicKey[] = "YG0oMN7oOWivNylyGL2p";
-const char PrivateKey[] = "RbqdM7Ad0WfVzkwkJGmW";
+const char PublicKey[] = "6Jqg46d7lRtajXoObJLy";
+const char PrivateKey[] = "Ww5oZXVp1nsBGAD18xw9";
 
 /////////////////
 // Post Timing //
@@ -105,6 +107,7 @@ void initHardware()
   digitalWrite(LED_PIN, LOW);
   // Don't need to set ANALOG_PIN as input, 
   // that's all it can be.
+  RGB_sensor.init();
 }
 
 void connectWiFi()
@@ -143,8 +146,10 @@ int postToPhant()
   // Declare an object from the Phant library - phant
   Phant phant(PhantHost, PublicKey, PrivateKey);
 
-  // Add the four field/value pairs defined by our stream:
-  phant.add("light", analogRead(ANALOG_PIN));
+  phant.add("r", RGB_sensor.readRed());
+  phant.add("g", RGB_sensor.readGreen());
+  phant.add("b", RGB_sensor.readBlue());
+  phant.add("extra", analogRead(ANALOG_PIN));
   phant.add("random", digitalRead(DIGITAL_PIN));
   phant.add("location", "My Desk");
 
