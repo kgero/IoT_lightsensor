@@ -8,52 +8,48 @@
     <!-- EXAMPLE SCRIPT -->
     <script>
 
+      function getData(public_key, chart, data, pagenum) {
+        var actualData = [];
+        var jsonData = $.ajax({
+          url: 'https://data.sparkfun.com/output/' + public_key + '.json',
+          data: {page: pagenum},
+          dataType: 'jsonp',
+        }).done(function (results) {
+          $.each(results, function (i, row) {
+            var curr_time = new Date(row.timestamp);
+            data.addRow([
+              (new Date(row.timestamp)),
+              parseFloat(row.r),
+              parseFloat(row.b),
+              parseFloat(row.g)
+            ]);
+          });
+          chart.draw(data, {title: 'RGB Light Levels'});
+        });
+      }
+
       // onload callback
       function drawChart() {
         console.log('Starting drawChart...')
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'Time');
+        data.addColumn('number', 'Red');
+        data.addColumn('number', 'Blue');
+        data.addColumn('number', 'Green');
+        var chart = new google.visualization.LineChart($('#chart').get(0));
 
         var public_key = '6Jqg46d7lRtajXoObJLy';
 
         // Set a start and end date for limiting the graph
         var start_date = new Date(2016, 0, 7, 0, 0, 0);
-        var end_date = new Date(2016, 0, 7, 12, 0, 0);
+        var end_date = new Date(2016, 0, 8, 0, 0, 0);
 
-        // JSONP request
-        var jsonData = $.ajax({
-          url: 'https://data.sparkfun.com/output/' + public_key + '.json',
-          // data: {page: 2},
-          dataType: 'jsonp',
-        }).done(function (results) {
+        for (i=2; i<3; i++){
+          getData(public_key, chart, data, i)
+        };
 
-          var data = new google.visualization.DataTable();
-
-          data.addColumn('datetime', 'Time');
-          data.addColumn('number', 'Red');
-          data.addColumn('number', 'Blue');
-          data.addColumn('number', 'Green');
-
-          $.each(results, function (i, row) {
-            //only do this if row.timestamp is within start_ and end_date
-            var curr_time = new Date(row.timestamp);
-            console.log(curr_time, end_date);
-            if(curr_time < end_date && curr_time > start_date){
-              data.addRow([
-                (new Date(row.timestamp)),
-                parseFloat(row.r),
-                parseFloat(row.b),
-                parseFloat(row.g)
-              ])};
-          });
-
-          var chart = new google.visualization.LineChart($('#chart').get(0));
-
-          chart.draw(data, {
-            title: 'RGB Light Levels'
-          });
-
-        });
-
-      }
+      }  // end function drawChart()
 
       // load chart lib
       google.load('visualization', '1', {
